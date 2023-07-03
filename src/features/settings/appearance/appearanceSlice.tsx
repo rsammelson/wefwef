@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   },
   COMMENTS: {
     COLLAPSE_COMMENT_THREADS: "appearance--collapse-comment-threads",
+    DEFAULT_COMMENT_SORT: "appearance--default-comment-sort"
   },
   POSTS: {
     TYPE: "appearance--post-type",
@@ -36,7 +37,17 @@ export const OCommentThreadCollapse = {
 } as const;
 
 export type CommentThreadCollapse =
-  (typeof OCommentThreadCollapse)[keyof typeof OCommentThreadCollapse];
+    (typeof OCommentThreadCollapse)[keyof typeof OCommentThreadCollapse];
+
+export const OCommentDefaultSort = {
+  Hot: "Hot",
+  Top: "Top",
+  New: "New",
+  Old: "Old"
+} as const;
+
+export type CommentSortDefault =
+    (typeof OCommentDefaultSort)[keyof typeof  OCommentDefaultSort];
 
 interface AppearanceState {
   font: {
@@ -45,6 +56,7 @@ interface AppearanceState {
   };
   comments: {
     collapseCommentThreads: CommentThreadCollapse;
+    defaultCommentSort: CommentSortDefault;
   };
   posts: {
     type: PostAppearanceType;
@@ -62,6 +74,7 @@ const initialState: AppearanceState = {
   },
   comments: {
     collapseCommentThreads: OCommentThreadCollapse.Never,
+    defaultCommentSort: OCommentDefaultSort.Hot,
   },
   posts: {
     type: OPostAppearanceType.Large,
@@ -79,6 +92,7 @@ const stateFromStorage: AppearanceState = merge(initialState, {
   },
   comments: {
     collapseCommentThreads: get(STORAGE_KEYS.COMMENTS.COLLAPSE_COMMENT_THREADS),
+    defaultCommentSort: get(STORAGE_KEYS.COMMENTS.DEFAULT_COMMENT_SORT),
   },
   posts: {
     type: get(STORAGE_KEYS.POSTS.TYPE),
@@ -120,6 +134,11 @@ export const appearanceSlice = createSlice({
 
       set(STORAGE_KEYS.COMMENTS.COLLAPSE_COMMENT_THREADS, action.payload);
     },
+    setDefaultCommentSort(state, action: PayloadAction<CommentSortDefault>) {
+      state.comments.defaultCommentSort = action.payload;
+
+      set(STORAGE_KEYS.COMMENTS.DEFAULT_COMMENT_SORT, action.payload)
+    },
     setPostAppearance(state, action: PayloadAction<PostAppearanceType>) {
       state.posts.type = action.payload;
 
@@ -144,6 +163,7 @@ export const {
   setFontSizeMultiplier,
   setUseSystemFontSize,
   setCommentsCollapsed,
+  setDefaultCommentSort,
   setPostAppearance,
   setUserDarkMode,
   setUseSystemDarkMode,

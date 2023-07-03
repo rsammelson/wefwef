@@ -11,6 +11,7 @@ import TextSize from "../../features/settings/appearance/TextSize";
 import PostView from "../../features/settings/appearance/PostView";
 import DarkMode from "../../features/settings/appearance/DarkMode";
 import CollapsedByDefault from "../../features/settings/appearance/CollapsedByDefault";
+import DefaultCommentSort from "../../features/settings/appearance/DefaultCommentSort";
 
 export default function AppearancePage() {
   return (
@@ -27,6 +28,7 @@ export default function AppearancePage() {
       <AppContent scrollY>
         <TextSize />
         <CollapsedByDefault />
+        <DefaultCommentSort />
         <PostView />
         <DarkMode />
       </AppContent>

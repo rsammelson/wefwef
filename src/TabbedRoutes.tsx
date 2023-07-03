@@ -52,6 +52,7 @@ import AppearancePage from "./pages/settings/AppearancePage";
 import CommunitySidebarPage from "./pages/shared/CommunitySidebarPage";
 import ApolloMigratePage from "./pages/settings/ApolloMigratePage";
 import PostAppearancePage from "./pages/settings/PostAppearancePage";
+import CommentSortPage from "./pages/settings/CommentSortPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 
 const Interceptor = styled.div`
@@ -337,6 +338,9 @@ export default function TabbedRoutes() {
           {...buildGeneralBrowseRoutes("settings")}
           <Route exact path="/settings/appearance/posts">
             <PostAppearancePage />
+          </Route>
+          <Route exact="/settings/appearance/comments">
+            <CommentSortPage />
           </Route>
         </IonRouterOutlet>
         <IonTabBar slot="bottom">

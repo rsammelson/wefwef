@@ -40,6 +40,7 @@ import { PageContext } from "../../auth/PageContext";
 import { jwtSelector } from "../../auth/authSlice";
 import CommentSort from "../../comment/CommentSort";
 import Nsfw, { isNsfw } from "../../labels/Nsfw";
+import {startCase} from "lodash";
 
 const BorderlessIonItem = styled(IonItem)`
   --padding-start: 0;
@@ -141,7 +142,11 @@ export default function PostDetail() {
   const titleRef = useRef<HTMLDivElement>(null);
   const pageContext = useContext(PageContext);
   const [commentsLastUpdated, setCommentsLastUpdated] = useState(Date.now());
-  const [sort, setSort] = useState<CommentSortType>("Hot");
+  const [sort, setSort] = useState<CommentSortType>(startCase(useAppSelector((state) => state.appearance.comments.defaultCommentSort)) as CommentSortType);
+
+  //startCase(useAppSelector((state) => state.appearance.comments.defaultCommentSort))
+
+
 
   const [reply, onDismissReply] = useIonModal(CommentReply, {
     onDismiss: (data: string, role: string) => {

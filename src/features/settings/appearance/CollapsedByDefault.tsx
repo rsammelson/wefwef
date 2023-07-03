@@ -18,7 +18,7 @@ export default function CollapsedByDefault() {
   const dispatch = useAppDispatch();
   const { collapseCommentThreads } = useAppSelector(
     // this needs a better naming
-    (state) => state.appearance.comments
+    (state) => state.appearance.comments.collapseCommentThreads
   );
 
   return (
