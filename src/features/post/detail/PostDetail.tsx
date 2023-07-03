@@ -144,10 +144,6 @@ export default function PostDetail() {
   const [commentsLastUpdated, setCommentsLastUpdated] = useState(Date.now());
   const [sort, setSort] = useState<CommentSortType>(startCase(useAppSelector((state) => state.appearance.comments.defaultCommentSort)) as CommentSortType);
 
-  //startCase(useAppSelector((state) => state.appearance.comments.defaultCommentSort))
-
-
-
   const [reply, onDismissReply] = useIonModal(CommentReply, {
     onDismiss: (data: string, role: string) => {
       if (role === "post") setCommentsLastUpdated(Date.now());
