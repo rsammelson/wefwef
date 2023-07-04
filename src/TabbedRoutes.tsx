@@ -29,7 +29,7 @@ import SettingsPage from "./pages/settings/SettingsPage";
 import { useContext, useRef } from "react";
 import { AppContext } from "./features/auth/AppContext";
 import InstallAppPage from "./pages/settings/InstallAppPage";
-import SearchPage from "./pages/search/SearchPage";
+import SearchPage, { focusSearchBar } from "./pages/search/SearchPage";
 import SearchPostsResultsPage from "./pages/search/results/SearchFeedResultsPage";
 import ProfileFeedItemsPage from "./pages/profile/ProfileFeedItemsPage";
 import SearchCommunitiesPage from "./pages/search/results/SearchCommunitiesPage";
@@ -41,7 +41,6 @@ import RepliesPage from "./pages/inbox/RepliesPage";
 import MessagesPage from "./pages/inbox/MessagesPage";
 import ConversationPage from "./pages/inbox/ConversationPage";
 import InboxPage from "./pages/inbox/InboxPage";
-import { PageContext } from "./features/auth/PageContext";
 import { IonRouterOutletCustomEvent } from "@ionic/core";
 import InboxAuthRequired from "./pages/inbox/InboxAuthRequired";
 import UpdateAppPage from "./pages/settings/UpdateAppPage";
@@ -54,6 +53,8 @@ import ApolloMigratePage from "./pages/settings/ApolloMigratePage";
 import PostAppearancePage from "./pages/settings/PostAppearancePage";
 import CommentSortPage from "./pages/settings/CommentSortPage";
 import ProfilePage from "./pages/profile/ProfilePage";
+import ProfileFeedHiddenPostsPage from "./pages/profile/ProfileFeedHiddenPostsPage";
+import { PageContextProvider } from "./features/auth/PageContext";
 
 const Interceptor = styled.div`
   position: absolute;
@@ -127,6 +128,9 @@ export default function TabbedRoutes() {
 
   async function onSearchClick() {
     if (!isSearchButtonDisabled) return;
+
+    // if the search page is already open, focus the search bar
+    focusSearchBar();
 
     if (await scrollUpIfNeeded()) return;
 
@@ -210,11 +214,17 @@ export default function TabbedRoutes() {
           <ProfileFeedItemsPage type="Comments" />
         </ActorRedirect>
       </Route>,
+      // eslint-disable-next-line react/jsx-key
+      <Route exact path={`/${tab}/:actor/u/:handle/hidden`}>
+        <ActorRedirect>
+          <ProfileFeedHiddenPostsPage />
+        </ActorRedirect>
+      </Route>,
     ];
   }
 
   return (
-    <PageContext.Provider value={{ page: pageRef.current as HTMLElement }}>
+    <PageContextProvider value={{ page: pageRef.current as HTMLElement }}>
       {/* TODO key={} resets the tab route stack whenever your instance changes. */}
       {/* In the future, it would be really cool if we could resolve object urls to pick up where you left off */}
       {/* But this isn't trivial with needing to rewrite URLs... */}
@@ -392,6 +402,6 @@ export default function TabbedRoutes() {
           </IonTabButton>
         </IonTabBar>
       </IonTabs>
-    </PageContext.Provider>
+    </PageContextProvider>
   );
 }
