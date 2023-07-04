@@ -12,7 +12,7 @@ export default function PostView() {
   return (
     <>
       <ListHeader>
-        <IonLabel>Posts {typeof postsAppearanceType}</IonLabel>
+        <IonLabel>Posts</IonLabel>
       </ListHeader>
       <IonList inset>
         <InsetIonItem routerLink="/settings/appearance/posts">

@@ -40,10 +40,10 @@ export type CommentThreadCollapse =
     (typeof OCommentThreadCollapse)[keyof typeof OCommentThreadCollapse];
 
 export const OCommentDefaultSort = {
-  Hot: "Hot",
-  Top: "Top",
-  New: "New",
-  Old: "Old"
+  Hot: "hot",
+  Top: "top",
+  New: "new",
+  Old: "old"
 } as const;
 
 export type CommentSortDefault =
