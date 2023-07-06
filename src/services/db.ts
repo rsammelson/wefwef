@@ -276,28 +276,31 @@ export class WefwefDB extends Dexie {
     const { user_handle = "", community = "" } = specificity || {};
 
     return this.transaction("r", this.settings, async () => {
+      // Try getting setting for this specific circumstance
       let setting = await this.settings
         // Everything matches
         .where(CompoundKeys.settings.key_and_user_handle_and_community)
         .equals([key, user_handle, community])
         .first();
 
-      if (!setting && user_handle !== "") {
-        // Fall back to user settings if no specific setting for the community is found
+      // If there are intermediate defaults to look up (that is, user or community defaults)
+      if (!setting && user_handle && community) {
+        // Fall back to community settings
+        if (!setting) {
+          setting = await this.settings
+            .where(CompoundKeys.settings.key_and_user_handle_and_community)
+            .equals([key, "", community])
+            .first();
+        }
+
+        // Fall back to user default settings
         setting = await this.settings
           .where(CompoundKeys.settings.key_and_user_handle_and_community)
           .equals([key, user_handle, ""])
           .first();
       }
 
-      if (!setting && community !== "") {
-        // Fall back to community settings if no specific setting for the user is found
-        setting = await this.settings
-          .where(CompoundKeys.settings.key_and_user_handle_and_community)
-          .equals([key, "", community])
-          .first();
-      }
-
+      // Fallback to global setting
       if (!setting) {
         // Fall back to global settings if no specific setting for the user is found
         setting = await this.settings
