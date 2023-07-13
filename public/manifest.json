@@ -1,19 +1,7 @@
 {
-  "short_name": "wefwef",
-  "name": "wefwef",
+  "short_name": "Voyager",
+  "name": "Voyager",
   "icons": [
-    {
-      "src": "/logo_maskable_minified.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo_minified.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
     {
       "src": "/favicons/192.png",
       "type": "image/png",
@@ -31,7 +19,7 @@
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#000000",
-  "description": "wefwef is a beautiful mobile web client for lemmy. Enjoy a seamless experience browsing the fediverse.",
+  "description": "Voyager is a beautiful mobile web client for lemmy. Enjoy a seamless experience browsing the fediverse.",
   "categories": ["social", "news"],
   "screenshots": [
     {

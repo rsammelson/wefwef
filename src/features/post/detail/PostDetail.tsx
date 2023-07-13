@@ -1,44 +1,27 @@
-import {
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonPage,
-  IonSpinner,
-  IonTitle,
-  IonToolbar,
-} from "@ionic/react";
-import { useAppDispatch, useAppSelector } from "../../../store";
-import { useParams } from "react-router";
+import { IonIcon, IonItem, IonSpinner, useIonViewDidEnter } from "@ionic/react";
+import { useAppDispatch } from "../../../store";
 import Stats from "./Stats";
 import styled from "@emotion/styled";
 import Embed from "../shared/Embed";
-import Comments from "../../comment/Comments";
+import Comments, { CommentsHandle } from "../../comment/Comments";
 import Markdown from "../../shared/Markdown";
 import PostActions from "../actions/PostActions";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { findLoneImage } from "../../../helpers/markdown";
-import { getPost } from "../postSlice";
+import { setPostRead } from "../postSlice";
 import { isUrlImage, isUrlVideo } from "../../../helpers/lemmy";
-import AppBackButton from "../../shared/AppBackButton";
 import { maxWidthCss } from "../../shared/AppContent";
 import PersonLink from "../../labels/links/PersonLink";
 import { CommentSortType, PostView } from "lemmy-js-client";
-import { useBuildGeneralBrowseLink } from "../../../helpers/routes";
 import ViewAllComments from "./ViewAllComments";
 import InlineMarkdown from "../../shared/InlineMarkdown";
 import { megaphone } from "ionicons/icons";
 import CommunityLink from "../../labels/links/CommunityLink";
 import Video from "../../shared/Video";
 import { css } from "@emotion/react";
-import { jwtSelector } from "../../auth/authSlice";
-import CommentSort from "../../comment/CommentSort";
 import Nsfw, { isNsfw } from "../../labels/Nsfw";
 import { PageContext } from "../../auth/PageContext";
-import MoreActions from "../shared/MoreActions";
-import {startCase} from "lodash";
-import PostGallery from "../../gallery/PostGallery";
+import PostGalleryImg from "../../gallery/PostGalleryImg";
 
 const BorderlessIonItem = styled(IonItem)`
   --padding-start: 0;
@@ -66,7 +49,9 @@ const lightboxCss = css`
   background: var(--lightroom-bg);
 `;
 
-const LightboxImg = styled(PostGallery)`
+const LightboxImg = styled(PostGalleryImg)`
+  -webkit-touch-callout: default;
+
   ${lightboxCss}
 `;
 
@@ -88,7 +73,7 @@ const StyledEmbed = styled(Embed)`
 
 const PostDeets = styled.div`
   margin: 0 8px;
-  font-size: 0.9em;
+  font-size: 0.875em;
 
   h1,
   h2,
@@ -101,14 +86,14 @@ const PostDeets = styled.div`
 `;
 
 const Title = styled.div`
-  font-size: 1.3em;
+  font-size: 1.125rem;
   padding: 16px 0 0;
   margin-bottom: 16px;
 `;
 
 const By = styled.div`
   margin-bottom: 5px;
-  color: var(--ion-color-medium);
+  color: var(--ion-color-text-aside);
 
   white-space: nowrap;
   overflow: hidden;
@@ -122,16 +107,18 @@ export const AnnouncementIcon = styled(IonIcon)`
   color: var(--ion-color-success);
 `;
 
-export default function PostDetail() {
-  const buildGeneralBrowseLink = useBuildGeneralBrowseLink();
-  const { id, commentPath, community } = useParams<{
-    id: string;
-    commentPath?: string;
-    community: string;
-  }>();
-  const jwt = useAppSelector(jwtSelector);
+interface PostDetailProps {
+  post: PostView;
+  commentPath: string | undefined;
+  sort: CommentSortType;
+}
+
+export default function PostDetail({
+  post,
+  commentPath,
+  sort,
+}: PostDetailProps) {
   const [collapsed, setCollapsed] = useState(!!commentPath);
-  const post = useAppSelector((state) => state.post.postById[id]);
   const dispatch = useAppDispatch();
   const markdownLoneImage = useMemo(
     () => (post?.post.body ? findLoneImage(post.post.body) : undefined),
@@ -139,14 +126,21 @@ export default function PostDetail() {
   );
   const titleRef = useRef<HTMLDivElement>(null);
   const { presentLoginIfNeeded, presentCommentReply } = useContext(PageContext);
-  const [commentsLastUpdated, setCommentsLastUpdated] = useState(Date.now());
-  const [sort, setSort] = useState<CommentSortType>(startCase(useAppSelector((state) => state.appearance.comments.defaultCommentSort)) as CommentSortType);
+  const [ionViewEntered, setIonViewEntered] = useState(false);
+  const commentsRef = useRef<CommentsHandle>(null);
 
+  // Avoid rerender from marking a post as read until the page
+  // has fully transitioned in.
+  // This keeps the page transition as performant as possible
   useEffect(() => {
-    if (post) return;
+    if (!post || !ionViewEntered) return;
 
-    dispatch(getPost(+id));
-  }, [post, jwt, dispatch, id]);
+    dispatch(setPostRead(+post.post.id));
+  }, [post, ionViewEntered, dispatch]);
+
+  useIonViewDidEnter(() => {
+    setIonViewEntered(true);
+  });
 
   useEffect(() => {
     titleRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,9 +222,9 @@ export default function PostDetail() {
             onReply={async () => {
               if (presentLoginIfNeeded()) return;
 
-              const replied = await presentCommentReply(post);
+              const reply = await presentCommentReply(post);
 
-              if (replied) setCommentsLastUpdated(Date.now());
+              if (reply) commentsRef.current?.appendComments([reply]);
             }}
           />
         </BorderlessIonItem>
@@ -239,37 +233,16 @@ export default function PostDetail() {
   }
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <AppBackButton
-              defaultHref={buildGeneralBrowseLink(`/c/${community}`)}
-              defaultText={post?.community.name}
-            />
-          </IonButtons>
-          <IonTitle>{post?.counts.comments} Comments</IonTitle>
-          <IonButtons slot="end">
-            <CommentSort sort={sort} setSort={setSort} />
-            {post && <MoreActions post={post} />}
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent>
-        {post ? (
-          <Comments
-            header={renderHeader(post)}
-            postId={post.post.id}
-            commentPath={commentPath}
-            op={post.creator}
-            sort={sort}
-            commentsLastUpdated={commentsLastUpdated}
-          />
-        ) : (
-          <CenteredSpinner />
-        )}
-        {commentPath && <ViewAllComments />}
-      </IonContent>
-    </IonPage>
+    <>
+      <Comments
+        ref={commentsRef}
+        header={renderHeader(post)}
+        postId={post.post.id}
+        commentPath={commentPath}
+        op={post.creator}
+        sort={sort}
+      />
+      {commentPath && <ViewAllComments />}
+    </>
   );
 }

@@ -1,44 +1,63 @@
-import styled from "@emotion/styled";
-import { IonLabel, IonList, IonToggle } from "@ionic/react";
+import { IonActionSheet, IonLabel, IonList } from "@ionic/react";
 import { InsetIonItem } from "../../../pages/profile/ProfileFeedItemsPage";
 import { useAppDispatch, useAppSelector } from "../../../store";
+import { setDefaultCommentSort } from "./appearanceSlice";
+import { useState } from "react";
+import { startCase } from "lodash";
 import {
-  OCommentThreadCollapse,
-  setCommentsCollapsed,
-} from "./appearanceSlice";
+  ActionSheetButton,
+  IonActionSheetCustomEvent,
+  OverlayEventDetail,
+} from "@ionic/core";
+import { CommentDefaultSort, OCommentDefaultSort } from "../../../services/db";
+import { ListHeader } from "./TextSize";
 
-export const ListHeader = styled.div`
-  font-size: 0.8em;
-  margin: 32px 0 -8px 32px;
-  text-transform: uppercase;
-  color: var(--ion-color-medium);
-`;
+const BUTTONS: ActionSheetButton<CommentDefaultSort>[] = Object.values(
+  OCommentDefaultSort
+).map(function (postAppearanceType) {
+  return {
+    text: startCase(postAppearanceType),
+    data: postAppearanceType,
+  } as ActionSheetButton<CommentDefaultSort>;
+});
 
 export default function CollapsedByDefault() {
+  const [open, setOpen] = useState(false);
+
   const dispatch = useAppDispatch();
-  const { collapseCommentThreads } = useAppSelector(
-    (state) => state.appearance.comments.collapseCommentThreads
+  const defaultCommentSort = useAppSelector(
+    (state) => state.appearance.comments.defaultCommentSort
   );
 
   return (
     <>
       <ListHeader>
-        <IonLabel>Comments</IonLabel>
+        <IonLabel>Posts</IonLabel>
       </ListHeader>
       <IonList inset>
-        <InsetIonItem>
-          <IonLabel>Collapse comment threads</IonLabel>
-          <IonToggle
-            checked={collapseCommentThreads === OCommentThreadCollapse.Always}
-            onIonChange={(e) =>
-              dispatch(
-                setCommentsCollapsed(
-                  e.detail.checked
-                    ? OCommentThreadCollapse.Always
-                    : OCommentThreadCollapse.Never
-                )
-              )
-            }
+        <InsetIonItem button onClick={() => setOpen(true)}>
+          <IonLabel>Post Size</IonLabel>
+          <IonLabel slot="end" color="medium">
+            {startCase(defaultCommentSort)}
+          </IonLabel>
+          <IonActionSheet
+            cssClass="left-align-buttons"
+            isOpen={open}
+            onDidDismiss={() => setOpen(false)}
+            onWillDismiss={(
+              e: IonActionSheetCustomEvent<
+                OverlayEventDetail<CommentDefaultSort>
+              >
+            ) => {
+              if (e.detail.data) {
+                dispatch(setDefaultCommentSort(e.detail.data));
+              }
+            }}
+            header="Post Size"
+            buttons={BUTTONS.map((b) => ({
+              ...b,
+              role: defaultCommentSort === b.data ? "selected" : undefined,
+            }))}
           />
         </InsetIonItem>
       </IonList>
